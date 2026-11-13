@@ -58,6 +58,11 @@ def load(p: Path):
         return None
 
 
+def dest_name(rel: str) -> str:
+    """Template files whose real names git would ignore are stored with a leading underscore."""
+    return {"_gitignore": ".gitignore", "_config.local.json": "config.local.json"}.get(rel, rel)
+
+
 def gitignore_lines():
     return [x.strip() for x in (TEMPLATE / "_gitignore").read_text(encoding="utf-8").splitlines()
             if x.strip() and not x.startswith("#")]
@@ -89,7 +94,7 @@ def migrate_config(root: Path, log):
         log.append("config.json could not be read: left as is (fix it, then re-run setup)")
         return
     if loc is None:
-        loc = json.loads((TEMPLATE / "config.local.json").read_text(encoding="utf-8"))
+        loc = json.loads((TEMPLATE / "_config.local.json").read_text(encoding="utf-8"))
     moved = []
     for section, key in SECRET_KEYS:
         sec = cfg.get(section)
@@ -168,7 +173,7 @@ def setup(root: Path, adopt: bool):
     for src in sorted(TEMPLATE.rglob("*")):
         if src.is_dir():
             continue
-        rel = str(src.relative_to(TEMPLATE)).replace("_gitignore", ".gitignore")
+        rel = dest_name(src.relative_to(TEMPLATE).as_posix())
         dst = root / rel
         if dst.exists():
             continue
@@ -253,8 +258,8 @@ def check(root: Path, invariants: bool):
         return r
     # structure
     missing = [f for f in FOLDERS if not (root / f).is_dir()]
-    missing += [str(p.relative_to(TEMPLATE)).replace("_gitignore", ".gitignore") for p in TEMPLATE.rglob("*")
-                if p.is_file() and not (root / str(p.relative_to(TEMPLATE)).replace("_gitignore", ".gitignore")).exists()]
+    missing += [dest_name(p.relative_to(TEMPLATE).as_posix()) for p in TEMPLATE.rglob("*")
+                if p.is_file() and not (root / dest_name(p.relative_to(TEMPLATE).as_posix())).exists()]
     r.fail("structure", f"missing: {', '.join(missing)} (re-run setup)") if missing else r.ok("structure")
     # tools
     stale = [t for t in TOOLS if sha(root / "bin" / t) != sha(HERE / t)]

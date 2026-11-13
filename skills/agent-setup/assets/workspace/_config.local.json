@@ -1,0 +1,12 @@
+{
+  "_note": "Secrets and private identifiers. Never commit or share this file.",
+  "notifications": {
+    "ntfy_topic": ""
+  },
+  "tracker": {
+    "mirror_id": ""
+  },
+  "inbox": {
+    "address": ""
+  }
+}

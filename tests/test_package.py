@@ -72,6 +72,18 @@ class Manifests(unittest.TestCase):
         self.assertTrue((ROOT / load("plugin.json")["logo"]).exists())
 
 
+class Shipped(unittest.TestCase):
+    def test_no_package_file_is_git_ignored(self):
+        import shutil
+        import subprocess
+        if not shutil.which("git") or not (ROOT / ".git").exists():
+            self.skipTest("not a git checkout")
+        files = [str(p.relative_to(ROOT)) for base in ("skills", "agents", ".claude-plugin", "tests")
+                 for p in (ROOT / base).rglob("*") if p.is_file() and "__pycache__" not in p.parts]
+        r = subprocess.run(["git", "-C", str(ROOT), "check-ignore", "--no-index", *files], capture_output=True, text=True)
+        self.assertEqual(r.stdout.split(), [], "these files would not be committed")
+
+
 class Skills(unittest.TestCase):
     def test_frontmatter(self):
         dirs = [d for d in (ROOT / "skills").iterdir() if d.is_dir()]

@@ -39,7 +39,7 @@ class Input(Workspace):
     def test_inbox_file_is_unique_private_and_deleted_after_use(self):
         a, b = self.inp({"company": "A", "role": "R"}), self.inp({"company": "A", "role": "R"})
         self.assertNotEqual(a, b)
-        self.assertEqual(Path(a).parent, self.ws / ".inbox")
+        self.assertEqual(Path(a).parent.resolve(), (self.ws / ".inbox").resolve())
         if os.name == "posix":
             self.assertEqual(os.stat(a).st_mode & 0o777, 0o600)
         self.t("add", "--json", a)

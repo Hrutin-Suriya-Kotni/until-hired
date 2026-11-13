@@ -45,6 +45,7 @@ Open Claude Code in a private folder for your search and say: **"start my job se
 To stay on a fixed release instead of following `main`, clone a tag and add it as a local marketplace: `git clone --branch v1.0.0 https://github.com/Hrutin-Suriya-Kotni/until-hired && claude plugin marketplace add ./until-hired`.
 
 ### Google Antigravity
+The tools and file layout are tested; a recorded live session in Antigravity is still to come ([help wanted](docs/live-run-2026-11.md)).
 ```bash
 agy plugin install https://github.com/Hrutin-Suriya-Kotni/until-hired
 ```

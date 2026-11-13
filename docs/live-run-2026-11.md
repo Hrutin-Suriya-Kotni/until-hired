@@ -71,8 +71,9 @@ These checks ran in the Mac's sandbox, against folders on the Mac:
 - a workspace was created in `~/Downloads/until-hired-livetest` (12 pass);
 - 4 parallel writers made 40 adds with no lost rows and ids 1–41.
 
-## Still to do (owner)
-- **Antigravity pass.** Computer use cannot type into terminals or IDEs, so this is manual. Steps:
+## Not yet done: help wanted
+1.0.0 was released without these two passes (the author's model API quota ran out). If you run one, please open an issue with the result and the `--check --invariants` output.
+- **Antigravity pass.** Steps:
   1. `python3 ~/Downloads/until-hired-v1/install.py --agent antigravity --target ~/Downloads/until-hired-agy-test`
   2. `cd ~/Downloads/until-hired-agy-test && agy`
   3. Say "start my job search" and answer as a fictional candidate.

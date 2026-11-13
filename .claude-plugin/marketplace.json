@@ -1,0 +1,15 @@
+{
+  "name": "until-hired",
+  "description": "An AI job-search coach that gets to know you, applies honestly, tracks everything, maps your skill gaps and keeps going until you're hired.",
+  "owner": {
+    "name": "Hrutin Suriya Kotni",
+    "url": "https://github.com/Hrutin-Suriya-Kotni"
+  },
+  "plugins": [
+    {
+      "name": "until-hired",
+      "source": "./",
+      "description": "An AI job-search coach that gets to know you, applies honestly, tracks everything, maps your skill gaps and keeps going until you're hired."
+    }
+  ]
+}

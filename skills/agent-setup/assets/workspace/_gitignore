@@ -1,0 +1,12 @@
+# until-hired: private by default. Remove a line only if you are sure (see SAFETY.md, "Your data").
+config.local.json
+profile/
+materials/
+tracker/contacts.csv
+knowledge/reviews/
+NOTIFICATIONS.md
+.inbox/
+.lock
+*.bak
+*.tmp
+.DS_Store

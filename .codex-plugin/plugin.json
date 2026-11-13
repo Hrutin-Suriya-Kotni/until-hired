@@ -1,0 +1,38 @@
+{
+  "name": "until-hired",
+  "version": "1.0.0",
+  "description": "An AI job-search coach that gets to know you, applies honestly, tracks everything, maps your skill gaps and keeps going until you're hired.",
+  "author": {
+    "name": "Hrutin Suriya Kotni",
+    "url": "https://github.com/Hrutin-Suriya-Kotni"
+  },
+  "homepage": "https://github.com/Hrutin-Suriya-Kotni/until-hired",
+  "repository": "https://github.com/Hrutin-Suriya-Kotni/until-hired",
+  "license": "MIT",
+  "skills": "./skills/",
+  "requires_local_executor": true,
+  "interface": {
+    "displayName": "until-hired",
+    "shortDescription": "Job-search coach until you're hired",
+    "longDescription": "A job-search coach for AI agents. It interviews you to learn your real experience, finds and scores jobs, prepares honest applications in the mode you choose (discover, prepare or submit), tracks every application, maps what the market asks for against what you can prove, coaches interviews and offers, and learns from every session. Your data stays in a private folder on your computer.",
+    "developerName": "Hrutin Suriya Kotni",
+    "category": "Productivity",
+    "capabilities": [
+      "Get to know you",
+      "Find and score jobs",
+      "Prepare honest applications",
+      "Track everything",
+      "Map skill gaps",
+      "Coach interviews"
+    ],
+    "defaultPrompt": [
+      "Set up until-hired and get to know me.",
+      "Find and score new jobs for me.",
+      "What needs my attention today?"
+    ],
+    "websiteURL": "https://github.com/Hrutin-Suriya-Kotni/until-hired",
+    "supportURL": "https://github.com/Hrutin-Suriya-Kotni/until-hired/issues",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/icon.png"
+  }
+}

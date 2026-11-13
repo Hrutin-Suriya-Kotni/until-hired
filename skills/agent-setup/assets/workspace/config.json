@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "setup_done": false,
+  "candidate": {
+    "name": "",
+    "timezone": "",
+    "language": "en"
+  },
+  "agent": {
+    "product": "",
+    "can_run_subagents": null,
+    "can_run_in_parallel": null,
+    "max_parallel_agents": 1,
+    "browser_tool": "none",
+    "can_schedule": null,
+    "can_send_notifications": null,
+    "machine": {}
+  },
+  "tracker": {
+    "backend": "csv",
+    "mirror": "none"
+  },
+  "inbox": {
+    "mode": "none",
+    "may_create_drafts": false,
+    "may_apply_labels": false
+  },
+  "notifications": {
+    "mode": "none",
+    "detail": "counts",
+    "ntfy_server": "https://ntfy.sh",
+    "quiet_hours": [
+      "22:30",
+      "07:30"
+    ],
+    "notify_on": [
+      "interview",
+      "assessment",
+      "offer",
+      "deadline",
+      "blocked"
+    ]
+  },
+  "platforms": [],
+  "submit": {
+    "default_mode": "prepare",
+    "auto_submit_min_score": null,
+    "confirmed_risks": false
+  },
+  "apply": {
+    "allowed_hosts": [],
+    "sensitive_on_known_hosts": false
+  },
+  "limits": {
+    "applications_per_day": 10,
+    "per_company_per_30_days": 2
+  },
+  "networking": {
+    "enabled": false,
+    "notes_per_day": 5
+  },
+  "cadence": {
+    "daily_session": "",
+    "weekly_review_day": "Sunday"
+  },
+  "scoring": {
+    "weights": {
+      "skills": 40,
+      "experience": 20,
+      "location": 15,
+      "company": 15,
+      "pay": 10
+    },
+    "apply_at": 70,
+    "review_band": [
+      60,
+      69
+    ],
+    "skip_below": 60
+  }
+}

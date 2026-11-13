@@ -1,0 +1,17 @@
+{
+  "name": "until-hired",
+  "interface": {
+    "displayName": "until-hired"
+  },
+  "plugins": [
+    {
+      "name": "until-hired",
+      "source": "./",
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

@@ -54,7 +54,7 @@ Go through every skill mentioned so far and agree a level with the candidate:
 - **claimed:** they say so, but nothing to show yet;
 - **learning:** in progress;
 - **none:** not known.
-Record each skill: write `{"name": "<skill>", "evidence": "<link or note>"}` to a fresh input file (agent-setup `references/safe-commands.md`) and run `python3 <workspace>/bin/knowledge.py skill --level <level> --json <path>` (`evidenced` needs evidence). Each project: `{"name": "<project>", "skills": ["a", "b", "c"], "evidence": "<link>"}` → `knowledge.py project --json <path>`.
+Record each skill: write `{"name": "<skill>", "evidence": "<link or note>"}` to a fresh input file (agent-setup `references/safe-commands.md`) and run `python3 <workspace>/bin/knowledge.py skill --level <level> --json <path>` (`evidenced` needs evidence). Each project: `{"name": "<project>", "skills": ["a", "b", "c"], "evidence": "<link>"}` → `knowledge.py project --json <path>`. A project's new skills start as `claimed`; set each one `evidenced` with its own `skill` call once the candidate has shown what proves it.
 Anything that is `none`, or `claimed` and central to a job type, goes into `DO_NOT_CLAIM.md` with what would make it claimable.
 
 ### 5. Gaps and history → `PROFILE.md` (Weak spots) + `knowledge.py gap`
@@ -78,7 +78,7 @@ Add each live or recent application: `{"company": "...", "role": "...", "source"
 - Copy resume files into `materials/_base/`.
 
 ### 9. Facts sign-off (required before any application)
-Show the candidate `FACTS.md` and `DO_NOT_CLAIM.md` in full and ask them to confirm or correct every line. Add a dated line to the FACTS change log: "signed off by candidate". Also build `STORIES.md`: 4–6 stories (Situation, Task, Action, Result, What I'd do differently) from their strongest work, one of them about a failure.
+Show the candidate `FACTS.md` and `DO_NOT_CLAIM.md` in full and ask them to confirm or correct every line. Only an explicit "yes, this is right" after seeing the files counts; a general statement made earlier ("it's all true") does not. Then add a dated line to the FACTS change log: "signed off by candidate". Also build `STORIES.md`: 4–6 stories (Situation, Task, Action, Result, What I'd do differently) from their strongest work, one of them about a failure.
 
 Then fill `PROFILE.md` (one-paragraph summary, strengths with proof, weak spots), mark every part `done` in `INTAKE_PROGRESS.md`, and hand back to **until-hired**.
 

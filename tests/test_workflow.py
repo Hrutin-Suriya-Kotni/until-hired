@@ -45,6 +45,19 @@ class TrackerWorkflow(Workspace):
         self.assertTrue((self.ws / "materials" / "1-acme-voice-pvt-ltd").is_dir())
         run(self.ws / "bin" / "check_system.py")
 
+    def test_check_by_id_ignores_the_job_itself_and_status_needs_evidence(self):
+        self.add("Acme", "ML", url="https://jobs.example.com/1")
+        self.add("Beta", "ML")
+        self.assertTrue((self.ws / "materials" / "1-acme").is_dir())                     # add creates the folder
+        self.t("check", "--id", "1")                                                      # not a duplicate of itself
+        self.t("add", "--json", self.inp({"company": "Acme", "role": "ML"}), "--force")    # a real duplicate (#3)
+        self.t("check", "--id", "1", expect=3)
+        self.t("update", "--id", "2", "--status", "applied", expect=2)                   # no evidence: refused
+        self.t("add", "--json", self.inp({"company": "Gamma", "role": "ML"}), "--status", "applied", expect=2)
+        self.t("update", "--id", "2", "--status", "applied", "--json", self.inp({"evidence": "candidate said so"}))
+        self.t("update", "--id", "2", "--status", "interview")                           # evidence already on the row
+        self.t("update", "--id", "2", "--status", "rejected")                            # endings need none
+
     def test_dir_option_after_command(self):
         self.add("Acme", "ML")
         out = run(self.T, "list", "--dir", self.ws / "tracker").stdout
@@ -78,6 +91,16 @@ class KnowledgeWorkflow(Workspace):
         K("claimable", "--json", self.inp({"skills": ["k8s"]}))
         events = (self.ws / "knowledge" / "events.jsonl").read_text(encoding="utf-8")
         self.assertIn('"to": "evidenced"', events)
+
+    def test_projects_never_promote_and_intake_gaps_show(self):
+        self.k("project", "--json", self.inp({"name": "Bot", "skills": ["python", "docker"], "evidence": "github.com/x"}))
+        claim = self.k("claimable", "--json", self.inp({"skills": ["python"]}), expect=3)
+        self.assertIn("claimed", claim.stdout)
+        self.k("gap", "--json", self.inp({"topic": "system design for high traffic", "source": "intake", "skill": "system design"}))
+        self.k("jd", "--json", self.inp({"company": "A", "role": "B", "skills": ["machine learning"]}))
+        out = self.k("gaps").stdout
+        self.assertIn("system design for high traffic", out)
+        self.assertIn("ASK", out)                                       # never assessed is not the same as "none"
 
     def test_evidenced_needs_evidence(self):
         self.k("skill", "--level", "evidenced", "--json", self.inp({"name": "Go"}), expect=2)

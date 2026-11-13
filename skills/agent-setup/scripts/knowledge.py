@@ -15,7 +15,8 @@ Skill levels (be strict, the candidate's interviews depend on it):
   evidenced  done in real work or a public project, with something to point at
   claimed    the candidate says so, but there is nothing to point at yet
   learning   in progress
-  none       not known (recorded so the agent never claims it)
+  none       the candidate does not have it (recorded so the agent never claims it)
+  (unknown)  seen in job descriptions but not assessed with the candidate yet
 
 Text copied from a job post, email or web page goes in a JSON file (--json FILE), never on the
 command line. Run `knowledge.py <command> -h` for each command's options.
@@ -109,7 +110,7 @@ class KB:
 
     def skill_level(self, skill):
         n = self.g["nodes"].get(nid("skill", skill))
-        return n["attrs"].get("level", "none") if n else "absent"
+        return n["attrs"].get("level", "unknown") if n else "unknown"
 
     def set_level(self, si, level, why):
         attrs = self.g["nodes"][si]["attrs"]
@@ -166,8 +167,8 @@ def cmd_project(a):
         p = kb.node("project", name, summary=summary, evidence=evidence, role=role)
         for s in split_list(skills):
             si = kb.node("skill", s)
-            if "level" not in kb.g["nodes"][si]["attrs"]:
-                kb.set_level(si, "evidenced" if evidence else "claimed", f"project {nid('project', name)}")
+            if kb.g["nodes"][si]["attrs"].get("level") in (None, "unknown"):
+                kb.set_level(si, "claimed", f"project {nid('project', name)}")   # evidenced only via `skill`
             kb.edge(p, si, "uses")
         kb.save()
     print(json.dumps({"project": p}))
@@ -246,22 +247,25 @@ def gap_rows(kb: KB, top: int):
         level = kb.skill_level(s)
         hits = sum(len(n["attrs"].get("evidence", [])) for gi, n in interview.items() if about.get(gi) == nid("skill", s))
         score = ms["count"] + ms["must"] + 3 * hits
-        cls = {"evidenced": "STRENGTH", "claimed": "UNPROVEN", "learning": "LEARNING"}.get(level, "MISSING")
+        cls = {"evidenced": "STRENGTH", "claimed": "UNPROVEN", "learning": "LEARNING", "none": "MISSING"}.get(level, "ASK")
         if hits and cls == "STRENGTH":
             cls = "DEEPEN"
         rows.append({"skill": s, "class": cls, "level": level, "in_jds": ms["count"], "must": ms["must"],
                      "share": round(100.0 * ms["count"] / jds), "interview_hits": hits, "score": score})
+    in_market = {nid("skill", s) for s in kb.m["skills"]}
     for gi, n in interview.items():
-        if gi not in about:
+        if gi not in about or about[gi] not in in_market:       # gaps the job descriptions don't (yet) mention
             hits = len(n["attrs"].get("evidence", []))
-            rows.append({"skill": n["label"], "class": "INTERVIEW", "level": "-", "in_jds": 0, "must": 0,
+            label = n["label"] if gi not in about else f"{n['label']} ({kb.g['nodes'].get(about[gi], {}).get('label', '')})"
+            rows.append({"skill": label, "class": "INTERVIEW", "level": "-", "in_jds": 0, "must": 0,
                          "share": 0, "interview_hits": hits, "score": 3 * hits})
     rows.sort(key=lambda r: -r["score"])
     return rows[:top] if top else rows
 
 
 ADVICE = {
-    "MISSING": "In demand and not yours yet. Close it if it fits the target track: smallest proof project, then claim it.",
+    "MISSING": "In demand and not yours (the candidate said so). Learn it only if it fits the target track: smallest proof project, then evidence it.",
+    "ASK": "In demand and not assessed yet: ask the candidate whether they have done it and what proves it.",
     "UNPROVEN": "You say you can, but there is nothing to show. Highest interview risk: build a small public proof.",
     "LEARNING": "Keep going; finish the proof so it can move to evidenced.",
     "DEEPEN": "A strength that interviewers still probed: prepare a deeper answer and one concrete story.",
@@ -292,7 +296,8 @@ def cmd_gaps(a):
         for r in rows:
             lines.append(f"| {md(r['skill'])} | {r['class']} | {r['share']}% | {r['must']} | {r['interview_hits']} | {ADVICE[r['class']]} |")
         lines += ["", "Classes: STRENGTH (evidenced and in demand), DEEPEN (strength still probed), UNPROVEN (claimed, no proof),",
-                  "LEARNING (in progress), MISSING (in demand, not yours), INTERVIEW (raised in interviews, not a JD skill).", ""]
+                  "LEARNING (in progress), MISSING (in demand, the candidate doesn't have it), ASK (in demand, not assessed yet),",
+                  "INTERVIEW (raised in interviews or intake, not yet in a job description).", ""]
         with locked(a.dir):
             atomic_write(a.dir / "GAPS.md", "\n".join(lines))
         print(f"wrote {a.dir / 'GAPS.md'}")
@@ -300,10 +305,10 @@ def cmd_gaps(a):
 
 def cmd_summary(a):
     kb = KB(a.dir)
-    by_level = {lv: [] for lv in LEVELS}
+    by_level = {lv: [] for lv in LEVELS + ["unknown"]}
     for n in kb.g["nodes"].values():
         if n.get("type") == "skill":
-            by_level.setdefault(n["attrs"].get("level", "none"), []).append(n["label"])
+            by_level.setdefault(n["attrs"].get("level", "unknown"), []).append(n["label"])
     projects = [n for n in kb.g["nodes"].values() if n.get("type") == "project"]
     uses = {}
     for e in kb.g["edges"]:
@@ -311,7 +316,7 @@ def cmd_summary(a):
             uses.setdefault(e["s"], []).append(kb.g["nodes"][e["t"]]["label"])
     top_market = sorted(kb.m["skills"].items(), key=lambda kv: -(kv[1]["count"] + kv[1]["must"]))[:15]
     lines = [f"# Knowledge graph summary ({today()})", "", "## Skills by level", ""]
-    for lv in LEVELS:
+    for lv in LEVELS + ["unknown"]:
         lines.append(f"- **{lv}** ({len(by_level.get(lv, []))}): " + ", ".join(md(x) for x in sorted(by_level.get(lv, []))))
     lines += ["", "## Projects", ""]
     for p in projects:

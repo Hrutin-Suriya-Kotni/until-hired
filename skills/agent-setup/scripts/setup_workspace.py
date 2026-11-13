@@ -195,8 +195,9 @@ def setup(root: Path, adopt: bool):
     for t in TOOLS:
         dst = root / "bin" / t
         if sha(dst) != sha(HERE / t):
+            existed = dst.exists()
             shutil.copyfile(HERE / t, dst)
-            log.append(f"bin/{t} updated")
+            log.append(f"bin/{t} {'updated' if existed else 'installed'}")
     (root / "bin" / "VERSION").write_text(__version__ + "\n", encoding="utf-8")
     migrate_config(root, log)
     repair_csvs(root, log)
@@ -388,14 +389,15 @@ def check(root: Path, invariants: bool):
     return r
 
 
-def answer_values(root: Path, sensitive_only=True):
+def answer_values(root: Path, section="sensitive"):
+    """Values (6+ characters) from one section of profile/ANSWERS.md: "sensitive" or "basic"."""
     p = root / "profile" / "ANSWERS.md"
     if not p.exists():
         return []
-    vals, on = [], not sensitive_only
+    vals, on = [], False
     for line in p.read_text(encoding="utf-8", errors="ignore").splitlines():
         if line.startswith("## "):
-            on = (not sensitive_only) or line.lower().startswith("## sensitive")
+            on = line[3:].strip().lower().startswith(section)
             continue
         m = re.match(r"\s*[-*]\s*[^:]{1,80}:\s*(.+)$", line)
         if on and m:
@@ -426,20 +428,28 @@ def audit(root: Path, r: Report):
             dups.append((seen[k], j["id"]))
         seen.setdefault(k, j["id"])
     r.warn("duplicates", f"same company and role: {dups}") if dups else r.ok("duplicates")
-    vals = answer_values(root)
-    places = []
-    scan = [p for p in list(d.glob("*")) + list((root / "knowledge").rglob("*")) +
-            [root / "SESSION_LOG.md", root / "NOTIFICATIONS.md"] + list((root / "proposals").rglob("*"))
-            if p.is_file() and p.suffix in (".csv", ".json", ".jsonl", ".md", ".txt")]
-    for p in scan:
-        try:
-            content = p.read_text(encoding="utf-8", errors="ignore")
-        except OSError:
-            continue
-        if any(v in content for v in vals):
-            places.append(str(p.relative_to(root)))
-    r.fail("privacy", f"a Sensitive answer from ANSWERS.md appears in: {places} (values not shown)") if places \
-        else r.ok("privacy", f"no Sensitive answer outside profile/ ({len(vals)} checked)")
+    sensitive, basic = answer_values(root, "sensitive"), answer_values(root, "basic")
+    common = [p for p in list(d.glob("*")) + list((root / "knowledge").rglob("*")) +
+              [root / "SESSION_LOG.md", root / "NOTIFICATIONS.md"] + list((root / "proposals").rglob("*"))]
+    text_files = (".csv", ".json", ".jsonl", ".md", ".txt", ".html", ".tex")
+
+    def leaks(paths, values):
+        found = []
+        for p in paths:
+            if not p.is_file() or p.suffix not in text_files:
+                continue
+            try:
+                content = p.read_text(encoding="utf-8", errors="ignore")
+            except OSError:
+                continue
+            if any(v in content for v in values):
+                found.append(str(p.relative_to(root)))
+        return found
+
+    places = leaks(common + list((root / "materials").rglob("*")), sensitive) + leaks(common, basic)
+    r.fail("privacy", f"an answer from ANSWERS.md appears in: {sorted(set(places))} (values not shown). Sensitive "
+           "answers belong only in profile/; Basic ones also on resumes in materials/") if places \
+        else r.ok("privacy", f"no private answer where it shouldn't be ({len(sensitive)} sensitive, {len(basic)} basic checked)")
     events = []
     for line in (d / "events.jsonl").read_text(encoding="utf-8").splitlines() if (d / "events.jsonl").exists() else []:
         try:

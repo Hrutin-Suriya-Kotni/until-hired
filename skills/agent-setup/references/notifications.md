@@ -9,7 +9,7 @@ computer and decides what may leave it.
 |---|---|---|---|
 | urgent | blocked | a login, CAPTCHA or code is blocking a platform the candidate asked you to run | "until-hired: 1 blocked update" |
 | high | interview / assessment / offer / deadline | an invite, a deadline, an offer, a prep sheet, a decision needed today | "until-hired: 1 interview update" |
-| default | session | end of a session | "until-hired: 11 session updates" |
+| default | session | end of a session (`count` = items that need the candidate) | "until-hired: 3 session updates" |
 | low | other | a platform reached its daily limit | "until-hired: 1 other update" |
 
 ## How to send
@@ -21,7 +21,7 @@ What leaves the computer depends on `config.notifications.detail`:
 - `counts` [default]: only "until-hired: <count> <kind> update(s)". Nothing about companies shows on a lock screen.
 - `names`: the title and message too, after `notify.py` removes email addresses, phone numbers and other long digit runs.
 Never put pay, codes, ANSWERS.md values, email bodies or contacts' full names in a notification, whatever the mode.
-Quiet hours (`config.notifications.quiet_hours`) hold everything except urgent.
+Quiet hours (`config.notifications.quiet_hours`, in `config.candidate.timezone`) hold pushes except urgent ones. Kinds not in `config.notifications.notify_on` are recorded but not pushed (`blocked` always is).
 
 ## Modes (`config.notifications.mode`)
 ### native

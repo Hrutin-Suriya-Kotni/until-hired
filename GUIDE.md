@@ -144,4 +144,4 @@ Choose at setup: the agent's native notifications, free phone push through [ntfy
 - **A platform keeps blocking** → switch it to `discover` mode; don't fight it.
 - **Scores feel wrong** → ask for a calibration: the agent shows five scored jobs and adjusts weights with you.
 - **Can it apply to 200 jobs a day?** It can be configured to, but reply rates drop, platforms restrict accounts, and recruiters notice. The funnel will show you what volume actually works.
-- **Where is my data?** Only in your workspace and whatever connectors you chose. `profile/ANSWERS.md` is git-ignored.
+- **Where is my data?** In your workspace, a private folder on your computer (`profile/`, `materials/`, contacts and secrets are git-ignored by default). Your AI provider sees what the agent reads; job sites see what goes into their forms (private answers only on known hiring systems or sites you allow); ntfy and a mirror only if you turn them on. The full table is in SAFETY.md.

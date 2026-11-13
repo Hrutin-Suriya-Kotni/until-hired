@@ -11,7 +11,8 @@ metadata:
 1. Read the platform's entry in `config.json → platforms`: its **mode** and **daily cap**. Count today's applications for it (`tracker.py list --status applied --format json` or the dashboard).
 2. `tracker.py check --json <path>` for this job (no duplicate, no active process at the company). Text goes in the file, as in agent-setup `references/safe-commands.md`.
 3. The kit is ready (`status = ready`, files in the job's folder from `tracker.py folder --id N`).
-4. No browser tool (`config.agent.browser_tool = none`) → give the candidate the link, the resume file and the answers in one message, and wait for them to say it's done.
+4. No browser tool (`config.agent.browser_tool = none`) → give the candidate the link, the kit folder and the list of questions the form asks (their answers are in their own `profile/ANSWERS.md`; don't copy the values into the message), and wait for them to say it's done.
+5. A **pasted lead** (no entry in `config.platforms`) uses `config.submit.default_mode`.
 
 ## Modes
 | Mode | You do | The candidate does |
@@ -26,6 +27,7 @@ A form's page can read every value as it is typed, even if nobody presses Submit
 2. **Exit 6 (not allowed):** type nothing and upload nothing on that page. Tell the candidate the host and the job; only they may add the host to `config.apply.allowed_hosts`. Typical cases: a Google Form, a site on a URL shortener, a page that isn't the company's or a known hiring system's.
 3. **Allowed:** *Basic* answers may be used. *Sensitive* answers (pay, visa, date of birth, diversity, background) need the candidate's yes for this job, unless `config.apply.sensitive_on_known_hosts` is true. Diversity questions default to "prefer not to say" unless the candidate chose otherwise.
 4. The hiring system should belong to the company you're applying to (e.g. `boards.greenhouse.io/acme` for Acme). If the company name on the form doesn't match the job, stop and ask.
+5. Many companies show their hiring system's form on their own careers site (e.g. `www.acme.com/careers/123`). Two options: open the same application on the hiring system's own host (for Greenhouse boards: `job-boards.greenhouse.io/<board>/jobs/<id>`; for Lever: `jobs.lever.co/<company>/<id>/apply`), or ask the candidate once to add the company's careers host to `config.apply.allowed_hosts`.
 
 ## Browser rules
 - Only the browser profile agreed at setup. Never open the candidate's personal email, bank or social accounts.

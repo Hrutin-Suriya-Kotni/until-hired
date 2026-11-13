@@ -19,12 +19,12 @@ Nothing is assumed. The machine and the agent are checked, and every choice come
 Run `python3 <workspace>/bin/check_system.py` and save the JSON in `config.json → agent.machine`. Tell the candidate in two lines what it means (e.g. "16 GB RAM: up to 3 browser agents at once without freezing").
 
 ## 3. Check yourself (the agent)
-Look at your own tool list and environment, test what you can, and record the answers in `config.json → agent`. Don't guess: if you can't tell, ask the candidate which product they are using. Per-product notes: [references/agents.md](references/agents.md).
+Look at your own tool list and environment, test what you can, and record the answers in `config.json → agent`. A tool counts only if a small test call works: tool lists sometimes name tools that aren't connected. Don't guess: if you can't tell, ask the candidate which product they are using. Per-product notes: [references/agents.md](references/agents.md).
 
 | Capability | How to check | Record |
 |---|---|---|
 | Which product you are | your system prompt / tool names; ask if unsure | `product` |
-| Subagents | a tool that launches another agent (names like Agent, Task, define_subagent, spawn). Launch one with "reply OK" | `can_run_subagents` |
+| Subagents | a tool that launches another agent (names like Agent, Task, define_subagent, spawn). Launch one with "reply OK"; no such tool, or the test fails → `false` | `can_run_subagents` |
 | Parallel | launch two such test agents at once; did both return? | `can_run_in_parallel`, `max_parallel_agents` (min of this and the machine's recommendation) |
 | Browser control | browser tools (Playwright MCP, Claude in Chrome, a built-in browser, computer use) | `browser_tool` |
 | Inbox | an email connector or MCP (Gmail, Outlook) you can read | inbox options in step 4 |
@@ -48,7 +48,7 @@ Then recommend one of these setups, and say why:
 4. **Limits** [10 applications/day, 2 per company per 30 days]. Quality beats volume; explain that higher numbers usually lower the reply rate.
 5. **Scoring** [apply at 70, review 60–69, skip below 60]: show the weights in `PREFERENCES.md` and let them change them.
 6. **Networking** [off]: conversation-starter notes on LinkedIn-style networks, drafts only, sent by the candidate.
-7. **Schedule** [manual]: a daily session time and a weekly review day. If you can schedule tasks, offer to; otherwise they start each session with "continue".
+7. **Schedule** [manual]: their time zone (for quiet hours and dates; `config.candidate.timezone`, e.g. `Asia/Kolkata`), a daily session time and a weekly review day [Sunday]. If you can schedule tasks, offer to; otherwise they start each session with "continue".
 8. **Tracker mirror** [none]: the CSV tracker is always the source of truth. If a spreadsheet or notes connector exists (Google Sheets, Notion, Airtable), offer a read-only mirror updated at the end of each session from `tracker.py export` with raw values. The mirror's id goes in `config.local.json → tracker.mirror_id`, not in `config.json`.
 9. **Application forms** [known hiring systems only]: answers from `profile/ANSWERS.md` are typed only into forms on known hiring systems (Greenhouse, Lever, Ashby, Workday, the job boards they chose...) plus any host the candidate adds to `config.apply.allowed_hosts`. Ask whether *Sensitive* answers (pay, visa, date of birth, diversity) may be used on those sites without asking each time (`config.apply.sensitive_on_known_hosts`, default no).
 10. **Browser profile** (if a browser tool is used): recommend a separate browser profile just for job sites, signed in by the candidate, so their personal browsing is never touched. With a tool that drives their everyday browser, say so plainly and agree which sites you may open.

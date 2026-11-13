@@ -6,14 +6,15 @@ tool takes text from a JSON file instead.
 
 ## The pattern (use it for every command that carries text from outside)
 
-1. Get a fresh input file:
+1. Get a fresh input path:
 
        python3 <workspace>/bin/tracker.py new-input --agent scout
 
-   It prints a path such as `<workspace>/.inbox/scout-20261113-101500-9f2c1a7e.json`. The name is
-   unique, so parallel agents never overwrite each other.
+   It prints a path such as `<workspace>/.inbox/scout-20261113-101500-9f2c1a7e.json` (the file does
+   not exist yet). The name is unique, so parallel agents never overwrite each other. Use a new path
+   for every command.
 
-2. Write one JSON object to that path **with your file-writing tool** (not `echo`, `cat`, `printf`
+2. Create that file with one JSON object **using your file-writing tool** (not `echo`, `cat`, `printf`
    or a heredoc, which all go through the shell):
 
        {"company": "Acme", "role": "ML Engineer", "url": "https://boards.greenhouse.io/acme/jobs/1",

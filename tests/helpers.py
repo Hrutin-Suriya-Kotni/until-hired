@@ -40,6 +40,7 @@ class Workspace(unittest.TestCase):
 
     def inp(self, data, agent="test"):
         path = run(self.T, "new-input", "--agent", agent).stdout.strip()
+        assert not Path(path).exists()
         Path(path).write_text(json.dumps(data), encoding="utf-8")
         return path
 

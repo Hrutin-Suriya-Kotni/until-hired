@@ -38,7 +38,8 @@
       "assessment",
       "offer",
       "deadline",
-      "blocked"
+      "blocked",
+      "session"
     ]
   },
   "platforms": [],

@@ -16,13 +16,14 @@ One job, one kit, written for that job. No templates stamped across companies.
 - `profile/ANSWERS.md`: read only to fill answers into this job's form; never copy it elsewhere.
 
 ## 1. Check first
-`tracker.py check --json <path>` (no duplicate, no active process; text in the file, see agent-setup `references/safe-commands.md`). Then `tracker.py update --id N --status preparing`.
+`tracker.py check --id N` (no other row for the same job, no active process at the company). Then `tracker.py update --id N --status preparing`.
 
 ## 2. Resume
-- Start from the candidate's base resume for this track. Reorder and reword to lead with what this job's core asks for; never add a claim that isn't in `FACTS.md`.
+- Start from the candidate's base resume for this track. No base resume yet → draft one from `FACTS.md` and show it to the candidate before it is used anywhere. Reorder and reword to lead with what this job's core asks for; never add a claim that isn't in `FACTS.md`.
+- The header (name, email, phone, links) comes from the *Basic* part of `profile/ANSWERS.md`; never from anywhere else, and never a *Sensitive* answer.
 - Use the job's own words only for work the candidate has really done: write `{"skills": ["...", "..."]}` to a fresh input file and run `knowledge.py claimable --json <path>`; it must exit 0 for any skill you put in the skills line.
 - Numbers exactly as in `FACTS.md`. Dates exactly as in `FACTS.md`.
-- Keep the length the candidate chose at intake (often one page early in a career). Use the document tools available to you (docx/pdf skills, or the candidate's editor); save in the job's folder as `<folder>/resume.pdf` (and the editable source). The file name the employer sees can be `<Name>_Resume_<Company>.pdf` when you upload it.
+- Keep the length the candidate chose at intake (often one page early in a career). Use the document tools available to you (docx/pdf skills, or the candidate's editor); save in the job's folder as `<folder>/resume.pdf` (and the editable source). Without document tools, write `<folder>/resume.md` and tell the candidate it needs exporting. The file name the employer sees can be `<Name>_Resume_<Company>.pdf` when you upload it.
 - Show the candidate what changed versus the base the first few times, until they trust the pattern.
 
 ## 3. Form answers

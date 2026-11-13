@@ -55,13 +55,19 @@ class Fresh(Workspace):
 
     def test_invariants(self):
         (self.ws / "profile" / "ANSWERS.md").write_text(
-            "## Basic\n- Phone: 555-0100\n## Sensitive\n- Current pay: 23 LPA fixed\n", encoding="utf-8")
-        run(self.T, "add", "--company", "Acme", "--role", "ML", "--status", "applied")               # no evidence
+            "## Basic\n- Phone: +1 555 010 0100\n## Sensitive\n- Current pay: 23 LPA fixed\n", encoding="utf-8")
+        run(self.T, "add", "--company", "Acme", "--role", "ML")
+        (self.ws / "materials" / "1-acme" / "resume.md").write_text("Asha · +1 555 010 0100", encoding="utf-8")
+        self.assertEqual(check(self.ws, "--invariants")[0]["privacy"]["level"], "PASS")    # Basic on a resume is fine
+        jobs = self.ws / "tracker" / "jobs.csv"                                            # a hand edit: applied, no evidence
+        jobs.write_text(jobs.read_text(encoding="utf-8").replace(",found,", ",applied,"), encoding="utf-8")
         run(self.T, "update", "--id", "1", "--note", "told them 23 LPA fixed")                      # leaked answer
         items, code = check(self.ws, "--invariants", expect=1)
         self.assertEqual(items["evidence"]["level"], "FAIL")
         self.assertEqual(items["privacy"]["level"], "FAIL")
         self.assertNotIn("23 LPA", json.dumps(items))                                               # never printed
+        run(self.T, "update", "--id", "1", "--note", "call +1 555 010 0100")                         # Basic in a note: leak
+        self.assertIn("tracker/jobs.csv", check(self.ws, "--invariants", expect=1)[0]["privacy"]["detail"])
 
 
 class Upgrade(unittest.TestCase):

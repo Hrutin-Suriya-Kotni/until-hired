@@ -11,7 +11,9 @@ Checked on 2026-11-13. The design was compared with the code at the commit that 
 | D5 | §6 C14: Dependabot | Dependabot covers GitHub Actions only: the tools have no third-party Python dependencies, and CI pins `skills-ref==0.1.1` | Keep |
 | D6 | §5.6: scrubbing removes "codes" | 6+ digit runs are removed. Shorter codes (4–5 digits) are not, because they look like other numbers | Keep. Instructions forbid codes in notifications, and `detail: counts` (the default) sends no free text at all |
 | D7 | §5.3: the hook covers "a mention that is not inside a read-only command" | Read-only means every segment of the command starts with a known inspection program (`cat`, `grep`, `sed`, `git`, …). A command mixing inspection with execution is checked as an execution | Keep (safer) |
-| D8 | §9 S10: live run | Not yet done when this report was written | Tracked in `docs/live-run-2026-11.md` |
+| D9 | Consolidated report B6: `new-input` creates an empty file with mode 600 | It prints a fresh path and does not create the file. The `.inbox/` folder is 700 | Changed in the design. Claude Code's file-writing tool refuses to overwrite a file it has not read first, so an empty pre-created file would make every hand-off fail. Uniqueness still holds: timestamp + 32 random bits + agent name |
+| D8 | §9 S10: live run on the author's Mac with Antigravity | The first live run used an agent that had never seen the skills (Claude, in a Linux container). Antigravity on the Mac is a 5-minute manual pass: computer use cannot type into terminals or IDEs | §9 S10 reworded; see `docs/live-run-2026-11.md` |
+| D10 | — (found in the live run) | `check --id`, evidence enforcement, `add` creating the folder, the *unknown* skill level and the ASK class, projects not promoting skills, intake gaps in the gap report, notification text for counts-only sends, quiet hours in the candidate's time zone, `notify_on`, Basic-answer leak audit | Added to the design (§5.7, §5.8, §7.2) and covered by tests |
 
 No other differences were found:
 - Every control in §6 has the code and tests listed.

@@ -16,7 +16,8 @@ First public release. Designed and reviewed with the Elephant Goldfish Model; se
 
 **Packaging**
 - One repository, many agents: Claude Code plugin and marketplace, Antigravity manifest, Codex manifests (experimental), and `install.py` (never replaces folders it didn't install).
-- Unit tests on Linux, macOS and Windows; pinned CI actions; Dependabot.
+- 58 unit tests on Linux, macOS and Windows; pinned CI actions; Dependabot.
+- Live run by an agent that had never seen the skills; its findings are fixed (`docs/live-run-2026-11.md`).
 
 ## 0.1.0 (2026-11, not published)
 Internal preview: 13 skills, 5 subagents, standard-library tracker and knowledge-graph tools.

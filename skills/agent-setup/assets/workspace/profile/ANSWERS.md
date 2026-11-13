@@ -1,12 +1,15 @@
 # Form answers (PRIVATE)
 
 > The agent reads this file only to fill an application form, and only after `tracker.py disclose`
-> says the form's site is allowed. Never copied into notes, logs, messages, skills or commits.
+> says the form's site is allowed. *Basic* answers may also appear in the header of a resume or cover
+> note. Never copied into notes, logs, messages, notifications, skills or commits.
 > A question that isn't here is asked to you; the agent never guesses.
 
-## Basic (used on allowed hiring sites)
+## Basic (used on allowed hiring sites and on your resume)
 
+- Email for applications:
 - Phone:
+- LinkedIn / portfolio links:
 - Notice period:
 - Willing to relocate (where):
 - Work mode preference (remote / hybrid / office):

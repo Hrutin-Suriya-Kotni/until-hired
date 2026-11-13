@@ -43,6 +43,7 @@ CSV_FILES = {"jobs.csv": JOB_FIELDS, "interviews.csv": INTERVIEW_FIELDS, "contac
 STATUSES = ["found", "shortlisted", "preparing", "ready", "applied", "assessment", "interview",
             "offer", "accepted", "rejected", "withdrawn", "closed", "skipped"]
 IN_PROCESS = {"applied", "assessment", "interview", "offer"}
+NEEDS_EVIDENCE = IN_PROCESS | {"accepted"}
 HOT = {"interview", "offer"}
 RESPONDED = {"assessment", "interview", "offer", "accepted", "rejected"}
 CLOSED = {"rejected", "withdrawn", "closed", "skipped", "accepted"}
@@ -194,20 +195,16 @@ def cmd_init(a):
 
 
 def cmd_new_input(a):
-    """Create a unique, empty input file in <workspace>/.inbox and print its absolute path."""
+    """Print a fresh, unique path in <workspace>/.inbox for one input file (the folder is private)."""
     agent = slug(a.agent or "agent", 24)
     box = workspace(a.dir) / ".inbox"
     box.mkdir(mode=0o700, exist_ok=True)
     for _ in range(20):
         p = box / f"{agent}-{dt.datetime.now().strftime('%Y%m%d-%H%M%S')}-{os.urandom(4).hex()}.json"
-        try:
-            fd = os.open(str(p), os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
-            os.close(fd)
-            print(p)
+        if not p.exists():
+            print(p)            # not created here: file-writing tools often refuse to overwrite unread files
             return
-        except FileExistsError:
-            continue
-    fail("could not create a unique input file")
+    fail("could not find a unique input file name")
 
 
 # ---------- commands: jobs ----------
@@ -233,10 +230,19 @@ def brief(j):
 
 def cmd_check(a):
     d = a.dir; need(d)
-    company, role, url = text(a.company, "company"), text(a.role, "role"), text(a.url, "url", URL)
-    if not company:
-        fail("check: company is required", EXIT_INPUT)
     jobs = jobs_of(d)
+    own = None
+    if a.id:
+        jid = check_id(a.id)
+        own = next((x for x in jobs if x["id"] == jid), None)
+        if not own:
+            fail(f"no job #{jid}")
+        company, role, url = own["company"], own["role"], own["url"]
+        jobs = [j for j in jobs if j["id"] != jid]          # a job is not a duplicate of itself
+    else:
+        company, role, url = text(a.company, "company"), text(a.role, "role"), text(a.url, "url", URL)
+    if not company:
+        fail("check: give --id N for a tracked job, or company (and role, url) in a --json file", EXIT_INPUT)
     dups = find_duplicates(jobs, company, role or "", url or "")
     same_co = company_rows(jobs, company)
     hot = [j for j in same_co if j["status"] in HOT]
@@ -268,6 +274,8 @@ def cmd_add(a):
     if not f["company"] or not f["role"]:
         fail("add: company and role are required", EXIT_INPUT)
     status = check_status(a.status or "found", STATUSES)
+    if status in NEEDS_EVIDENCE and not f["evidence"]:
+        fail(f"status {status} needs evidence (confirmation text, email subject + date, or 'candidate said so')", EXIT_INPUT)
     score = check_score(a.score)
     check_date("next_on", a.next_on); check_date("applied_on", a.applied_on)
     p = d / "jobs.csv"
@@ -288,6 +296,7 @@ def cmd_add(a):
             row["applied_on"] = a.applied_on or str(today())
         jobs.append(row)
         write_csv(p, JOB_FIELDS, jobs)
+        (workspace(d) / folder_of(row)).mkdir(parents=True, exist_ok=True)
         log_event(d, type="job_added", id=row["id"], status=status, source=row["source"],
                   **({"evidence": True} if row["evidence"] else {}))
     if hot:
@@ -312,6 +321,9 @@ def cmd_update(a):
         if not j:
             fail(f"no job #{jid}")
         old = j["status"]
+        if a.status in NEEDS_EVIDENCE and a.status != old and not (f["evidence"] or j["evidence"]):
+            fail(f"status {a.status} needs evidence: add \"evidence\" (confirmation text, email subject + date, "
+                 "or 'candidate said so') to the --json file", EXIT_INPUT)
         if a.status:
             if a.status in IN_PROCESS and not j["applied_on"]:
                 j["applied_on"] = a.applied_on or str(today())
@@ -697,14 +709,15 @@ def cmd_dashboard(a):
 def build():
     c = Cli("tracker.py", __doc__, default_dir(), "tracker")
     c.cmd("init", cmd_init, "create the tracker files (safe to re-run)")
-    x = c.cmd("new-input", cmd_new_input, "create a unique empty input file in <workspace>/.inbox and print its path")
+    x = c.cmd("new-input", cmd_new_input, "print a fresh, unique path in <workspace>/.inbox for an input file")
     x.add_argument("--agent", default="agent", help="who will fill it, e.g. scout, applicant")
 
-    x = c.cmd("check", cmd_check, "duplicate / active-process check before preparing or applying (exit 3 or 4)")
-    x.add_argument("--company"); x.add_argument("--role"); x.add_argument("--url")
+    x = c.cmd("check", cmd_check, "duplicate / active-process check (exit 3 or 4): --id N for a tracked job, "
+                                   "or company/role/url in a --json file for a job not added yet")
+    x.add_argument("--id"); x.add_argument("--company"); x.add_argument("--role"); x.add_argument("--url")
     x.add_argument("--days", type=int, default=30)
 
-    x = c.cmd("add", cmd_add, "add a job; prints {id, folder, status}")
+    x = c.cmd("add", cmd_add, "add a job; creates its materials folder and prints {id, folder, status}")
     for o in ("--company", "--role", "--url", "--source", "--location", "--work-mode", "--status", "--score",
               "--track", "--notes", "--evidence", "--next", "--next-on", "--contact", "--applied-on"):
         x.add_argument(o)

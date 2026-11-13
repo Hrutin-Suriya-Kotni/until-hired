@@ -41,7 +41,7 @@ class Input(Workspace):
         self.assertNotEqual(a, b)
         self.assertEqual(Path(a).parent.resolve(), (self.ws / ".inbox").resolve())
         if os.name == "posix":
-            self.assertEqual(os.stat(a).st_mode & 0o777, 0o600)
+            self.assertEqual(os.stat(Path(a).parent).st_mode & 0o777, 0o700)
         self.t("add", "--json", a)
         self.assertFalse(Path(a).exists())
         self.t("add", "--json", b, expect=3)                     # duplicates also consume the file
@@ -274,6 +274,8 @@ class NotifyModes(Workspace):
         self.assertNotIn("Acme", json.dumps(sent))
         self.assertIn("1 interview update", sent["message"])
         self.assertIn("Acme", (self.ws / "NOTIFICATIONS.md").read_text(encoding="utf-8"))
+        run(self.N, "send", "--kind", "session", "--count", "6")                       # the session-close form
+        self.assertIn("6 session updates", (self.ws / "NOTIFICATIONS.md").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

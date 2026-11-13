@@ -93,8 +93,8 @@ One shared module, not copies in each tool: the lock and the input parser are se
   - The `--key=value` form means a value starting with `-` cannot become an option.
   - Refused: the keys `dir`, `json`, `version` and `help`; nested objects; a key given both in the file and as an option (all exit 2).
   - Lists of text are joined with commas (used for skills).
-- **Input files.** `tracker.py new-input --agent NAME` creates `<ws>/.inbox/<name>-<time>-<random>.json`, empty, with mode 600, using exclusive create, and prints its absolute path.
-  - The agent fills the file with its own file-writing tool.
+- **Input files.** `tracker.py new-input --agent NAME` prints a fresh absolute path `<ws>/.inbox/<name>-<time>-<random>.json` in a private (700) folder. It does not create the file, because agents' file-writing tools often refuse to overwrite a file they have not read.
+  - The agent creates the file with its own file-writing tool.
   - Any command that read a file from `.inbox/` deletes it after exit 0, 3 or 4. Other paths are never deleted.
   - Stdin (`--json -`) is not accepted.
 - **Options that may stay on the command line** are typed values only: ids, statuses, dates, scores, modes, formats, limits, and `--host` / `--fields` (validated by pattern). The list is `guard.TYPED`. The skill lint and the hook both use it.
@@ -191,7 +191,7 @@ The topic is read from `config.local.json` and never printed. Quiet hours hold e
 
 `--invariants` adds a data audit for after a session:
 - FAIL when a job at applied or later has no evidence and no interview row;
-- FAIL when a *Sensitive* answer of 6 or more characters appears in tracker, knowledge, proposals, `SESSION_LOG.md` or `NOTIFICATIONS.md` (only the locations are printed, never the values);
+- FAIL when an answer of 6 or more characters from `ANSWERS.md` appears where it shouldn't: a *Sensitive* one anywhere in tracker, knowledge, proposals, `materials/`, `SESSION_LOG.md` or `NOTIFICATIONS.md`; a *Basic* one in the same places except `materials/` (resumes carry contact details). Only the locations are printed, never the values;
 - WARN on duplicates;
 - INFO on blocked disclosures.
 
@@ -203,7 +203,8 @@ The topic is read from `config.local.json` and never printed. Quiet hours hold e
 - *Sensitive* answers need a yes for each job unless `config.apply.sensitive_on_known_hosts` is true.
 - **Verification codes** are never read out, copied or passed on.
 - **Lessons** are stored in `knowledge/lessons.pending.jsonl` by `knowledge.py lesson` (kind from a fixed list, 300 characters at most). Only `lessons --approve` (which the hook makes ask the candidate) appends them to `LEARNINGS.md`.
-- **Skill levels:** `evidenced` needs evidence, and every level change is logged in `knowledge/events.jsonl`.
+- **Skill levels:** `evidenced` needs evidence and is set only by `knowledge.py skill` (a project's skills start as `claimed`). Skills seen only in job descriptions are *unknown* (gap class ASK), which is different from `none` (the candidate said they don't have it). Every level change is logged in `knowledge/events.jsonl`.
+- **Evidence:** `tracker.py add` and `update` refuse `applied`, `assessment`, `interview`, `offer` and `accepted` without evidence (in the call or already on the row).
 
 ## 6. Controls and how they are enforced
 | # | Control | Enforced by | Tests / scenarios |
@@ -237,7 +238,7 @@ The topic is read from `config.local.json` and never printed. Quiet hours hold e
 | 6 | blocked: the host is not allowed (`disclose`) |
 
 ### 7.2 Commands added in 1.0
-- tracker: `new-input`, `folder`, `disclose` and `export`;
+- tracker: `new-input`, `folder`, `disclose` and `export`; `check --id N` (checks a tracked job against every other row);
 - knowledge: `lesson` and `lessons`;
 - `--format json` on `list`, `due`, `funnel`, `gaps` and `lessons`;
 - notify: `send` and `test`;
@@ -271,7 +272,7 @@ The topic is read from `config.local.json` and never printed. Quiet hours hold e
 | S7 | `disclose` allows known hosts, blocks others with exit 6, and logs no values; `--invariants` finds a leaked Sensitive answer without printing it. | G4 |
 | S8 | `claude plugin validate .` and `agentskills validate` pass; every manifest version equals `plugin.json`. | G5 |
 | S9 | `python -m unittest discover -s tests` passes on ubuntu, windows (Python 3.9 and 3.13) and macOS (3.13), with pinned actions and read-only CI permissions. | G6, G8 |
-| S10 | A live run on the author's Mac (Antigravity) with a fictional candidate, recorded in `docs/live-run-2026-11.md`, ends with `--check --invariants` showing no FAIL. | G7 |
+| S10 | A live run by an agent that has never seen the skills, with a fictional candidate, recorded in `docs/live-run-2026-11.md`, ends with `--check --invariants` showing no FAIL, and every finding is fixed or recorded. An Antigravity pass on the author's Mac follows the same script. | G7 |
 
 ## 10. Risks
 | Risk | Likelihood | Impact | Mitigation |

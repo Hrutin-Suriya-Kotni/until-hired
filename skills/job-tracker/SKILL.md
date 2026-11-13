@@ -17,17 +17,17 @@ Endings: `rejected`, `withdrawn`, `closed` (no response / posting removed), `ski
 
 ## Passing text to the tracker
 Company, role, URL, notes, evidence and every other piece of text from outside go in a JSON file, never on the command line (agent-setup `references/safe-commands.md`):
-1. `tracker.py new-input --agent <your name>` prints a fresh path in `<workspace>/.inbox/`.
-2. Write the JSON object there with your file-writing tool.
+1. `tracker.py new-input --agent <your name>` prints a fresh path in `<workspace>/.inbox/` (a new path for every command).
+2. Create that file with the JSON object, using your file-writing tool.
 3. Run the command with `--json <path>`; ids, statuses, dates and scores may stay as options. The tool deletes the file after it succeeds.
 
 ## Rules
-1. **Check before work.** File `{"company": "...", "role": "...", "url": "..."}`, then `tracker.py check --json <path>` before preparing or applying.
+1. **Check before work.** For a job already in the tracker: `tracker.py check --id N` (it leaves the job's own row out). For a job not added yet: file `{"company": "...", "role": "...", "url": "..."}`, then `tracker.py check --json <path>`.
    - exit 3 = duplicate: don't apply again;
    - exit 4 = the candidate is already interviewing or holding an offer there: don't apply again without asking them;
    - the JSON answer also shows how many applications went to that company in the last 30 days (`config.limits.per_company_per_30_days`).
 2. **Record every job you score**, including skips. File `{"company", "role", "url", "source", "track", "notes": "<one-line reason>"}`, then `tracker.py add --json <path> --score <n> --status <found|shortlisted|skipped>`. It prints `{"id", "folder", "status"}`: use that `folder` (`materials/<id>-<name>`) for everything you write about the job. Skips teach the market picture too.
-3. **Status changes need evidence.** File `{"evidence": "<confirmation text | email subject + date | candidate said so>"}`, then `tracker.py update --id N --status applied --json <path>`. Without evidence, keep the old status and add a note instead.
+3. **Status changes need evidence.** File `{"evidence": "<confirmation text | email subject + date | candidate said so>"}`, then `tracker.py update --id N --status applied --json <path>`. The tool refuses `applied`, `assessment`, `interview`, `offer` and `accepted` without evidence (exit 2). Without evidence, keep the old status and add a note instead.
 4. **Always set the next step** when something is open: `"next": "<action>"` in the file plus `--next-on YYYY-MM-DD` (follow up, prep, deadline, decision).
 5. **Interviews:** file `{"round": "...", "with": "<names/roles>", "link": "<meeting link>"}`, then `tracker.py interview-add --json <path> --job-id N --when "YYYY-MM-DD HH:MM"`. After the round: file `{"went_well", "probed", "struggled", "outcome"}`, then `tracker.py debrief --json <path> --id <interview id>` (the self rating goes in the file as `"rating": "7/10"`).
 6. **Applications the candidate made themselves** (found in email or told to you) get a row too, with `"source": "self"` and the real date as `--applied-on`.

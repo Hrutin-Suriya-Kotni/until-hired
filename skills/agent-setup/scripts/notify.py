@@ -71,6 +71,18 @@ def in_quiet_hours(qh, now=None):
     return (start <= t or t < end) if start > end else (start <= t < end)
 
 
+def local_now(config):
+    """Now in the candidate's time zone (config.candidate.timezone), else the computer's."""
+    tz = ((config.get("candidate") or {}).get("timezone") or "").strip()
+    if tz:
+        try:
+            from zoneinfo import ZoneInfo
+            return dt.datetime.now(ZoneInfo(tz)).replace(tzinfo=None)
+        except Exception:                                     # unknown zone or no tz database (some Windows)
+            pass
+    return dt.datetime.now()
+
+
 def record(ws: Path, title, message, priority, outcome):
     p = ws / "NOTIFICATIONS.md"
     if not p.exists():
@@ -105,8 +117,12 @@ def cmd_send(a, test=False):
             count = int(a.count or 1)
         except ValueError:
             fail("count must be a whole number", EXIT_INPUT)
-        title, message = scrub(a.title or "until-hired", 80), scrub(a.message or "", 400)
+        title = scrub(a.title or "until-hired", 80)
+        message = scrub(a.message or f"{count} {kind} update{'s' if count != 1 else ''}", 400)
     mode = cfg.get("mode", "none")
+    notify_on = cfg.get("notify_on")
+    if mode in ("native", "ntfy") and not test and isinstance(notify_on, list) and kind not in notify_on and kind != "blocked":
+        mode = "digest"                                           # the candidate didn't ask to be pinged for this kind
     if mode not in MODES:
         fail(f"notifications.mode must be one of {', '.join(sorted(MODES))}", EXIT_INPUT)
     detail = cfg.get("detail", "counts")
@@ -119,7 +135,8 @@ def cmd_send(a, test=False):
             record(ws, title, message, priority, "not sent: notifications off")
             print("recorded (notifications off)")
             return
-        if priority != "urgent" and not test and in_quiet_hours(cfg.get("quiet_hours")):
+        if mode in ("native", "ntfy") and priority != "urgent" and not test and \
+                in_quiet_hours(cfg.get("quiet_hours"), local_now(load_json_file(ws / "config.json", {}))):
             record(ws, title, message, priority, "held: quiet hours")
             print("recorded (quiet hours)")
             return

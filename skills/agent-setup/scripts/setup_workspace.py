@@ -374,7 +374,7 @@ def check(root: Path, invariants: bool):
         if (root / ".inbox").exists() else []
     r.warn("inbox", f"{len(old)} input file(s) older than a day in .inbox/ (copied page text): delete them") if old \
         else r.ok("inbox")
-    tmps = [str(p.relative_to(root)) for p in root.rglob("*.tmp")]
+    tmps = [p.relative_to(root).as_posix() for p in root.rglob("*.tmp")]
     r.warn("temp files", f"left over: {tmps[:5]}") if tmps else r.ok("temp files")
     lp = root / "knowledge" / "lessons.pending.jsonl"
     n = len([x for x in lp.read_text(encoding="utf-8").splitlines() if x.strip()]) if lp.exists() else 0
@@ -443,7 +443,7 @@ def audit(root: Path, r: Report):
             except OSError:
                 continue
             if any(v in content for v in values):
-                found.append(str(p.relative_to(root)))
+                found.append(p.relative_to(root).as_posix())
         return found
 
     places = leaks(common + list((root / "materials").rglob("*")), sensitive) + leaks(common, basic)
